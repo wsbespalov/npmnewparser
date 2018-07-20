@@ -1,18 +1,13 @@
 import os
 import re
+import ast
 import sys
 
 Base_Dir = os.path.abspath(os.path.dirname(__file__))
-# print("Base_Dir: {}".format(Base_Dir))
 
 Package_Name = "mysql"
 Versions_File_Name = "versions.txt"
 Versions_File_Path = os.path.join(Base_Dir, Versions_File_Name)
-# print("Versions_File_Path: {}".format(Versions_File_Path))
-Command_Get_Npm_Versions = "npm show {} versions > {}".format(Package_Name, Versions_File_Path)
-# print("Get Versions of Package: {}".format(Package_Name))
-
-# os.system(Command_Get_Npm_Versions)
 
 def Split_And_Remove_Empty_Elements(String):
     Splitted = String.split("||")
@@ -32,43 +27,38 @@ Package_Versions_From_Source = [
     '2.10.0', '2.10.1', '2.10.2', '2.11.0', '2.11.1', '2.12.0', '2.13.0', '2.14.0',
     '2.14.1', '2.15.0', '2.16.0' ]
 
-# Vulnerable_Versions = ">=2.0.0-alpha8 <=2.0.0-rc2 || >=2.0.0 <=2.13.0"
-# Vulnerable_Versions = ">=2.0.0-alpha8 || >=2.0.0 <=2.13.0"
-# Vulnerable_Versions = ">=5.0.3 < 6.0.0 || >=6.8.6"
-# Vulnerable_Versions = "< 1.6.16 || >=1.7 <1.7.11 || >= 1.8 <1.8.2-beta.4"
-# Vulnerable_Versions = "<= 1.7.12 || >=1.8.0 <= 1.8.3 || >=2.0.0-beta.1 <= 2.0.0-beta.4"
-# Vulnerable_Versions = ">=1.6.16 <1.7.0|| >=1.7.11 > 1.8.0 || >=1.8.2-beta.4"
-# Vulnerable_Versions = "1.7.13 < 1.8.0 || 1.8.4 < 2.0.0 || >=2.0.0-beta.5"
-
 Vulnerable_Versions = "< 0.3.0 || >=0.5.0 <0.7.0 || >= 0.9.0 <2.0.0-alpha5"
 Patched_Versions = ">=2.14.0 <= 2.16.0"
 
 def Process_Vulnerable_Versions(Package_Versions, Vulnerable_Versions):
+    if "99.99999.999" in Vulnerable_Versions:
+        return Package_Versions
+
     Diapasons = Split_And_Remove_Empty_Elements(Vulnerable_Versions)
-    print("Diapasons:                  {}".format(Diapasons))
+    # print("Diapasons:                  {}".format(Diapasons))
 
     Vulnerable_Versions_To_Save = []
 
     for Index in range(0, len(Diapasons)):
-        print("------------------------------")
+        # print("------------------------------")
         Diap_0_Source = Diapasons[Index]
         Diap_0 = Diap_0_Source.replace(">", "").replace("<", "").replace("=", "")
-        print("Diap_0:                     {}".format([Diap_0]))
+        # print("Diap_0:                     {}".format([Diap_0]))
         Diap_0_Splitted = Diap_0.split(" ")
         Diap_0_Splitted_Cleared = [x for x in Diap_0_Splitted if x != ""]
-        print("Diap_0_Splitted_Cleared:    {}".format(Diap_0_Splitted_Cleared))
+        # print("Diap_0_Splitted_Cleared:    {}".format(Diap_0_Splitted_Cleared))
         Diap_0_Bounds = []
         Filled = False
         if len(Diap_0_Splitted_Cleared) == 1:
             Filled = True
             Diap_0_Bounds.append(Package_Versions[0])
             Diap_0_Bounds.append(Diap_0_Splitted_Cleared[0])
-            print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
+            # print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
         elif len(Diap_0_Splitted_Cleared) == 2:
             Filled = False
             Diap_0_Bounds.append(Diap_0_Splitted_Cleared[0])
             Diap_0_Bounds.append(Diap_0_Splitted_Cleared[1])
-            print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
+            # print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
         
         Start_Index = 0
         Stop_Index = 0
@@ -104,38 +94,41 @@ def Process_Vulnerable_Versions(Package_Versions, Vulnerable_Versions):
                 Stop_Index = Package_Versions.index(Diap_0_Bounds[1])
 
         Vulnerable_Versions_From_Package = Package_Versions[Start_Index:Stop_Index]
-        print("Package_Versions:           {}".format(Vulnerable_Versions_From_Package))
+        # print("Package_Versions:           {}".format(Vulnerable_Versions_From_Package))
 
         Vulnerable_Versions_To_Save += Vulnerable_Versions_From_Package
 
     return Vulnerable_Versions_To_Save
 
 def Process_Patched_Versions(Package_Versions, Patched_Versions):
+    if "0.0.0" in Patched_Versions:
+        return []
+
     Diapasons = Split_And_Remove_Empty_Elements(Patched_Versions)
-    print("Diapasons:                  {}".format(Diapasons))
+    # print("Diapasons:                  {}".format(Diapasons))
 
     Patched_Versions_To_Save = []
 
     for Index in range(0, len(Diapasons)):
-        print("------------------------------")
+        # print("------------------------------")
         Diap_0_Source = Diapasons[Index]
         Diap_0 = Diap_0_Source.replace(">", "").replace("<", "").replace("=", "")
-        print("Diap_0:                     {}".format([Diap_0]))
+        # print("Diap_0:                     {}".format([Diap_0]))
         Diap_0_Splitted = Diap_0.split(" ")
         Diap_0_Splitted_Cleared = [x for x in Diap_0_Splitted if x != ""]
-        print("Diap_0_Splitted_Cleared:    {}".format(Diap_0_Splitted_Cleared))
+        # print("Diap_0_Splitted_Cleared:    {}".format(Diap_0_Splitted_Cleared))
         Diap_0_Bounds = []
         Filled = False
         if len(Diap_0_Splitted_Cleared) == 1:
             Filled = True
             Diap_0_Bounds.append(Diap_0_Splitted_Cleared[0])
             Diap_0_Bounds.append(Package_Versions[-1])
-            print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
+            # print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
         elif len(Diap_0_Splitted_Cleared) == 2:
             Filled = False
             Diap_0_Bounds.append(Diap_0_Splitted_Cleared[0])
             Diap_0_Bounds.append(Diap_0_Splitted_Cleared[1])
-            print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
+            # print("Diap_0_Bounds:              {}".format(Diap_0_Bounds))
 
         Start_Index = 0
         Stop_Index = 0
@@ -170,16 +163,32 @@ def Process_Patched_Versions(Package_Versions, Patched_Versions):
                 Start_Index = Package_Versions.index(Diap_0_Bounds[0])
                 Stop_Index = Package_Versions.index(Diap_0_Bounds[1])
 
-        # TODO: Without <>, <= >=
-
         Patched_Versions_From_Package = Package_Versions[Start_Index:Stop_Index]
-        print("Package_Versions:           {}".format(Patched_Versions_From_Package))
+        # print("Package_Versions:           {}".format(Patched_Versions_From_Package))
 
         Patched_Versions_To_Save += Patched_Versions_From_Package
 
     return Patched_Versions_To_Save
 
-Process_Patched_Versions(Package_Versions_From_Source, Patched_Versions)
+def Process_NPM_Vulner_To_Get_Vulnerable_And_Patched_Versions(Module_Name, Vulnerable_Versions, Patched_Versions):
+    Command_Get_Npm_Versions = "npm show {} versions > {}".format(Module_Name, Versions_File_Path)
+    if os.path.exists(Versions_File_Path):
+        os.remove(Versions_File_Path)
+    os.system(Command_Get_Npm_Versions)
+    if os.path.exists(Versions_File_Path):
+        with open(Versions_File_Path, 'r') as Versions_File_Object:
+            Package_Versions_From_File = Versions_File_Object.read()
+            Package_Versions_From_File = Package_Versions_From_File.replace("[", "").replace("]", "")
+            Package_Versions_From_File = Package_Versions_From_File.replace(" ", "")
+            Package_Versions_From_File = Package_Versions_From_File.replace(",", "").replace("'", "")
+            Package_Versions_From_File = [x for x in Package_Versions_From_File.split("\n") if x != ""]
+            print("Package Versions From NPM:      {}".format(Package_Versions_From_File))
 
-# Process_Vulnerable_Versions(Package_Versions_From_Source, Vulnerable_Versions)
+            Vulnerable_Versions_For_Module = Process_Vulnerable_Versions(Package_Versions_From_Source, Vulnerable_Versions)
+            print("Vulnerable Versions For Module: {}".format(Vulnerable_Versions_For_Module))
+            Patched_Versions_For_Module = Process_Patched_Versions(Package_Versions_From_Source, Patched_Versions)
+            print("Patched Versions For Module:    {}".format(Patched_Versions_For_Module))
 
+print("Get Vulnerable Versions As:      {}".format(Vulnerable_Versions))
+print("Get Patched Versions As:         {}".format(Patched_Versions))
+Process_NPM_Vulner_To_Get_Vulnerable_And_Patched_Versions("mysql", Vulnerable_Versions, Patched_Versions)
