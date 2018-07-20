@@ -16,19 +16,19 @@ def Split_And_Remove_Empty_Elements(String):
         Result.append(s)
     return Result
 
-Package_Versions_From_Source = [ 
-    '0.1.0', '0.2.0', '0.3.0', 
-    '0.4.0', 
-    '0.5.0', '0.6.0', '0.7.0',
-    '0.8.0', 
-    '0.9.0', '0.9.1', '0.9.2', '0.9.3', '0.9.4', '0.9.5', '0.9.6', '2.0.0-alpha', '2.0.0-alpha2', '2.0.0-alpha3', '2.0.0-alpha4', '2.0.0-alpha5', 
-    '2.0.0-alpha6', '2.0.0-alpha7', '2.0.0-alpha8', '2.0.0-alpha9', '2.0.0-rc1', '2.0.0-rc2', '2.0.0', '2.0.1', '2.1.0', '2.1.1', '2.2.0', '2.3.0',
-    '2.3.1', '2.3.2', '2.4.0', '2.4.1', '2.4.2', '2.4.3', '2.5.0', '2.5.1', '2.5.2', '2.5.3', '2.5.4', '2.5.5', '2.6.0', '2.6.1', '2.6.2', '2.7.0', '2.8.0', '2.9.0',
-    '2.10.0', '2.10.1', '2.10.2', '2.11.0', '2.11.1', '2.12.0', '2.13.0', '2.14.0',
-    '2.14.1', '2.15.0', '2.16.0' ]
+# Package_Versions_From_Source = [ 
+#     '0.1.0', '0.2.0', '0.3.0', 
+#     '0.4.0', 
+#     '0.5.0', '0.6.0', '0.7.0',
+#     '0.8.0', 
+#     '0.9.0', '0.9.1', '0.9.2', '0.9.3', '0.9.4', '0.9.5', '0.9.6', '2.0.0-alpha', '2.0.0-alpha2', '2.0.0-alpha3', '2.0.0-alpha4', '2.0.0-alpha5', 
+#     '2.0.0-alpha6', '2.0.0-alpha7', '2.0.0-alpha8', '2.0.0-alpha9', '2.0.0-rc1', '2.0.0-rc2', '2.0.0', '2.0.1', '2.1.0', '2.1.1', '2.2.0', '2.3.0',
+#     '2.3.1', '2.3.2', '2.4.0', '2.4.1', '2.4.2', '2.4.3', '2.5.0', '2.5.1', '2.5.2', '2.5.3', '2.5.4', '2.5.5', '2.6.0', '2.6.1', '2.6.2', '2.7.0', '2.8.0', '2.9.0',
+#     '2.10.0', '2.10.1', '2.10.2', '2.11.0', '2.11.1', '2.12.0', '2.13.0', '2.14.0',
+#     '2.14.1', '2.15.0', '2.16.0' ]
 
-Vulnerable_Versions = "< 0.3.0 || >=0.5.0 <0.7.0 || >= 0.9.0 <2.0.0-alpha5"
-Patched_Versions = ">=2.14.0 <= 2.16.0"
+# Vulnerable_Versions = "< 0.3.0 || >=0.5.0 <0.7.0 || >= 0.9.0 <2.0.0-alpha5"
+# Patched_Versions = ">=2.14.0 <= 2.16.0"
 
 def Process_Vulnerable_Versions(Package_Versions, Vulnerable_Versions):
     if "99.99999.999" in Vulnerable_Versions:
@@ -174,21 +174,28 @@ def Process_NPM_Vulner_To_Get_Vulnerable_And_Patched_Versions(Module_Name, Vulne
     Command_Get_Npm_Versions = "npm show {} versions > {}".format(Module_Name, Versions_File_Path)
     if os.path.exists(Versions_File_Path):
         os.remove(Versions_File_Path)
-    os.system(Command_Get_Npm_Versions)
+    try:
+        os.system(Command_Get_Npm_Versions)
+    except Exception as ex:
+        return [], []
     if os.path.exists(Versions_File_Path):
-        with open(Versions_File_Path, 'r') as Versions_File_Object:
-            Package_Versions_From_File = Versions_File_Object.read()
-            Package_Versions_From_File = Package_Versions_From_File.replace("[", "").replace("]", "")
-            Package_Versions_From_File = Package_Versions_From_File.replace(" ", "")
-            Package_Versions_From_File = Package_Versions_From_File.replace(",", "").replace("'", "")
-            Package_Versions_From_File = [x for x in Package_Versions_From_File.split("\n") if x != ""]
-            print("Package Versions From NPM:      {}".format(Package_Versions_From_File))
+        try:
+            with open(Versions_File_Path, 'r') as Versions_File_Object:
+                Package_Versions_From_File = Versions_File_Object.read()
+                Package_Versions_From_File = Package_Versions_From_File.replace("[", "").replace("]", "")
+                Package_Versions_From_File = Package_Versions_From_File.replace(" ", "\n")
+                Package_Versions_From_File = Package_Versions_From_File.replace(",", "").replace("'", "")
+                Package_Versions_From_File = [x for x in Package_Versions_From_File.split("\n") if x != ""]
+                print("Package Versions From NPM:      {}".format(Package_Versions_From_File))
 
-            Vulnerable_Versions_For_Module = Process_Vulnerable_Versions(Package_Versions_From_Source, Vulnerable_Versions)
-            print("Vulnerable Versions For Module: {}".format(Vulnerable_Versions_For_Module))
-            Patched_Versions_For_Module = Process_Patched_Versions(Package_Versions_From_Source, Patched_Versions)
-            print("Patched Versions For Module:    {}".format(Patched_Versions_For_Module))
+                Vulnerable_Versions_For_Module = Process_Vulnerable_Versions(Package_Versions_From_File, Vulnerable_Versions)
+                print("Vulnerable Versions For Module: {}".format(Vulnerable_Versions_For_Module))
+                Patched_Versions_For_Module = Process_Patched_Versions(Package_Versions_From_File, Patched_Versions)
+                print("Patched Versions For Module:    {}".format(Patched_Versions_For_Module))
+                return Vulnerable_Versions_For_Module, Patched_Versions_For_Module
+        except Exception as ex:
+            return [], []
 
-print("Get Vulnerable Versions As:      {}".format(Vulnerable_Versions))
-print("Get Patched Versions As:         {}".format(Patched_Versions))
-Process_NPM_Vulner_To_Get_Vulnerable_And_Patched_Versions("mysql", Vulnerable_Versions, Patched_Versions)
+VV, PV = Process_NPM_Vulner_To_Get_Vulnerable_And_Patched_Versions("electron", "< 0.3.0", ">=2.0.0")
+print("VV = {}".format(VV))
+print("PV = {}".format(PV))
